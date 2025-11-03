@@ -1,89 +1,99 @@
- Workflow
- 
-1. Data Collection & HTML Parsing (15%)
+ # SEO Content Detector
 
-Installs required libraries for web scraping and parsing.
+## Project Overview
 
-Fetches HTML content from given URLs using robust error-handling and time delays.
+The SEO Content Detector project identifies duplicate or low-quality ("thin") web content and evaluates content quality based on readability and word count. It uses TF-IDF-based similarity and a Random Forest model to classify and score text extracted from web pages.
 
-Extracts title and body text from each webpage.
+---
 
-2. Text Preprocessing & Feature Engineering (25%)
+## Setup Instructions
 
-Cleans and tokenizes text, removing stopwords and HTML tags.
+```bash
+git clone https://github.com/priyankakadirvel/seo-content-detector
+cd seo-content-detector
+jupyter notebook notebooks/seo_pipeline.ipynb
+```
 
-Generates TF-IDF vectors for the processed text.
+Ensure the following dependencies are installed:
 
-Extracts features such as:
-
-Word count
-
-Flesch Reading Ease score
-
-Keyword density
-
-Readability-based metrics
-
-3. Duplicate Detection (20%)
-
-Computes cosine similarity between TF-IDF vectors.
-
-Flags pairs of pages with similarity above a threshold as duplicates.
-
-Labels content as “thin” based on low word count or redundancy.
-
-Saves cleaned and labeled data into:
-
-duplicates.csv — duplicate URL pairs
-
-extracted_content.csv — main dataset with “is_thin” column
-
-4. Content Quality Scoring (25%)
-
-Defines a content quality label using readability and word count thresholds.
-
-Trains a Random Forest Classifier to predict quality categories.
-
-Evaluates with:
-
-Accuracy
-
-F1-score
-
-Confusion Matrix
-
-Requirements
-
-To set up the environment:
-
+```bash
 pip install pandas numpy scikit-learn beautifulsoup4 requests nltk
+```
 
- 
-Open the notebook:
+---
 
-notebooks/seo_pipeline.ipynb
+## Quick Start
 
-Run all cells sequentially.
+1. Dataset : data/urls.xlsx
+2. Open and run `seo_pipeline.ipynb` in Jupyter Notebook.
+3. The notebook will:
 
-It will parse, clean, extract features, detect duplicates, and train the quality model.
+   * Extract HTML and text from URLs.
+   * Clean and preprocess the text.
+   * Detect duplicate and thin content.
+   * Train and evaluate a classification model for content quality.
+4. Outputs such as `duplicate_pairs.csv`, `extracted_data.csv`, and trained model results will be saved in the `notebooks/` folder.
 
-Outputs will be saved in the data/ and models/ folders.
+---
 
- Outputs
+## Key Decisions
 
-extracted_content.csv → Parsed and preprocessed text.
+* **Choice of Libraries:**
+  Used `BeautifulSoup` for parsing HTML, `scikit-learn` for TF-IDF vectorization and Random Forest classification, and `pandas` for data manipulation. These libraries provide strong support for text analytics workflows.
 
-duplicates.csv → Similar or duplicate content pairs.
+* **HTML Parsing Approach:**
+  Extracted `<title>` and main `<body>` text using `BeautifulSoup`, ensuring noisy elements like scripts and styles are removed for cleaner text.
 
-features.csv → Engineered dataset with readability & keyword stats.
+* **Similarity Threshold Rationale:**
+  A cosine similarity threshold (0.8) was chosen to balance between detecting true duplicates and avoiding false positives.
 
-Trained Model → Saved in the models/ directory.
+* **Model Selection Reasoning:**
+  Random Forest was selected for its interpretability, robustness on small datasets, and ability to handle non-linear relationships in text-derived features.
 
- Evaluation Metrics
+---
 
-Accuracy
+## Results Summary
 
-Precision / Recall / F1-Score
+The Random Forest model outperformed the baseline in detecting and classifying content quality levels. The model achieved an **overall accuracy of 84%**, compared to **72%** from the baseline classifier.
 
-Confusion Matrix visualization
+### Random Forest Model Performance
+
+* **Accuracy:** 84%
+* **Macro F1-score:** 0.58
+* **Weighted F1-score:** 0.81
+* **Observations:**
+
+  * Strong recall for *Low Quality* content (1.00) and balanced precision-recall for *Medium Quality* (0.93 / 0.88).
+  * The model struggled with *High Quality* samples due to limited representation (only 2 instances).
+  * Shows robust classification of "Low" and "Medium" quality categories.
+
+### Baseline Model Performance
+
+* **Accuracy:** 72%
+* **Macro F1-score:** 0.49
+* **Weighted F1-score:** 0.71
+* The baseline exhibited weaker performance, particularly misclassifying *Medium* and *High* quality texts.
+
+### Confusion Matrix Insights
+
+* **Random Forest:** Accurately classified all *Low Quality* items and most *Medium Quality* ones.
+* **Baseline:** Over-predicted *Low Quality* and missed *High Quality* entirely.
+
+### Key Feature Importance
+
+1. **Word Count (0.43):** Primary indicator of content depth and richness.
+2. **Flesch Reading Ease (0.31):** Reflects readability and complexity of text.
+3. **Sentence Count (0.26):** Helps distinguish detailed, well-structured content from thin pages.
+
+Overall, the Random Forest model demonstrated **significant improvement in quality prediction** and **more reliable duplicate/thin content detection** compared to the baseline approach.
+
+
+---
+
+## Limitations
+
+* The TF-IDF approach does not capture deep semantic meaning between sentences.
+* Results depend heavily on the quality of input text extraction from HTML.
+* The model was trained on limited data and may need tuning for larger or domain-specific datasets.
+
 
